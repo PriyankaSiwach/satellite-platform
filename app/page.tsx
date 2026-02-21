@@ -5,12 +5,14 @@ import { Telemetry } from "@/types/telemetry";
 import { useState, useEffect } from "react";
 import MetricsCard from "@/components/MetricsCard";
 import { Alert } from "@/types/alert";
+import TelemetryTable from "@/components/TelemetryTable";
 
 export default function Home() {
   const [selectedSatellite, setSelectedSatellite] = useState("SAT-Alpha");
   const [time, setTime] = useState(new Date());
   const [telemetry, setTelemetry] = useState<Telemetry | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [history, setHistory] = useState<Telemetry[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -26,6 +28,9 @@ export default function Home() {
     const interval = setInterval(() => {
       const newTelemetry = generateTelemetry();
       setTelemetry(newTelemetry);
+      setHistory((prev) =>
+        [newTelemetry, ...prev].slice(0, 20)
+      );
 
       const newAlerts: Alert[] = [];
 
@@ -136,6 +141,9 @@ export default function Home() {
       </section>
       <section>
         <AlertPanel alerts={alerts} />
+      </section>
+      <section>
+        <TelemetryTable data={history} />
       </section>
     </div>
   );
