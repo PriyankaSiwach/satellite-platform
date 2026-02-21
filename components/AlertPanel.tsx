@@ -1,31 +1,23 @@
+import { Alert } from "@/types/alert";
 
-type Alert = {
-  id: number;
-  message: string;
-  severity: "warning" | "critical";
+type Props = {
+  alerts: Alert[];
 };
 
-const alerts: Alert[] = [
-  {
-    id: 1,
-    message: "Radiation spike detected above threshold",
-    severity: "critical",
-  },
-  {
-    id: 2,
-    message: "Temperature approaching thermal boundary",
-    severity: "warning",
-  },
-];
-
-export default function AlertPanel() {
+export default function AlertPanel({ alerts }: Props) {
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
       <h3 className="text-sm font-semibold mb-4 text-neutral-300 tracking-wide">
         Active Alerts
       </h3>
 
-      <div className="space-y-3">
+      {alerts.length === 0 && (
+        <p className="text-neutral-500 text-sm">
+          No active anomalies detected.
+        </p>
+      )}
+
+      <div className="space-y-3 max-h-60 overflow-y-auto">
         {alerts.map((alert) => (
           <div
             key={alert.id}
@@ -35,7 +27,12 @@ export default function AlertPanel() {
                 : "bg-yellow-950 border-yellow-800 text-yellow-400"
             }`}
           >
-            {alert.message}
+            <div className="flex justify-between">
+              <span>{alert.message}</span>
+              <span className="text-xs opacity-70">
+                {alert.timestamp}
+              </span>
+            </div>
           </div>
         ))}
       </div>

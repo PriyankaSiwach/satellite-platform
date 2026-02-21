@@ -4,11 +4,13 @@ import { generateTelemetry } from "@/lib/generateTelemetry";
 import { Telemetry } from "@/types/telemetry";
 import { useState, useEffect } from "react";
 import MetricsCard from "@/components/MetricsCard";
+import { Alert } from "@/types/alert";
 
 export default function Home() {
   const [selectedSatellite, setSelectedSatellite] = useState("SAT-Alpha");
   const [time, setTime] = useState(new Date());
   const [telemetry, setTelemetry] = useState<Telemetry | null>(null);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -22,9 +24,36 @@ export default function Home() {
     setTelemetry(generateTelemetry());
 
     const interval = setInterval(() => {
-      setTelemetry(generateTelemetry());
+      const newTelemetry = generateTelemetry();
+      setTelemetry(newTelemetry);
+
+      const newAlerts: Alert[] = [];
+
+      if (newTelemetry.radiation > 180) {
+        newAlerts.push({
+          id: Date.now(),
+          message: "Critical radiation spike detected",
+          severity: "critical",
+          timestamp: new Date().toLocaleTimeString(),
+        });
+      }
+
+      if (newTelemetry.temperature > -40) {
+        newAlerts.push({
+          id: Date.now() + 1,
+          message: "Thermal boundary warning",
+          severity: "warning",
+          timestamp: new Date().toLocaleTimeString(),
+        });
+      }
+
+      if (newAlerts.length > 0) {
+        setAlerts((prev) =>
+          [...newAlerts, ...prev].slice(0, 10)
+        );
+      }
+
     }, 1000);
-    
 
     return () => clearInterval(interval);
   }, []);
@@ -41,8 +70,8 @@ export default function Home() {
     return "normal";
   }
   if (!telemetry) {
-  return null;
-}
+    return null;
+  }
 
   return (
     <div className="space-y-8">
@@ -106,7 +135,7 @@ export default function Home() {
         </div>
       </section>
       <section>
-        <AlertPanel />
+        <AlertPanel alerts={alerts} />
       </section>
     </div>
   );
