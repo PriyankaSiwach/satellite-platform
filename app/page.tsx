@@ -29,13 +29,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!isStreaming) return;
-
-    const firstTelemetry = generateTelemetry();
-    setTelemetry(firstTelemetry);
-    setHistory([firstTelemetry]);
-
-    const interval = setInterval(() => {
-      const newTelemetry = generateTelemetry();
+    const interval = setInterval(async() => {
+      const response = await fetch("/api/telemetry");
+      const newTelemetry = await response.json();
 
       setTelemetry(newTelemetry);
 
@@ -50,48 +46,48 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [isStreaming]);
 
- 
+
   useEffect(() => {
-  if (!telemetry) return;
+    if (!telemetry) return;
 
-  const newAlerts: Alert[] = [];
+    const newAlerts: Alert[] = [];
 
-  if (telemetry.radiation > 200) {
-    newAlerts.push({
-      id: crypto.randomUUID(),
-      type: "radiation",
-      message: `High radiation detected: ${telemetry.radiation.toFixed(1)} µSv`,
-      severity: "critical",
-      timestamp: new Date().toISOString(),
-    });
-  }
+    if (telemetry.radiation > 200) {
+      newAlerts.push({
+        id: crypto.randomUUID(),
+        type: "radiation",
+        message: `High radiation detected: ${telemetry.radiation.toFixed(1)} µSv`,
+        severity: "critical",
+        timestamp: new Date().toISOString(),
+      });
+    }
 
-  if (telemetry.temperature < -100) {
-    newAlerts.push({
-      id: crypto.randomUUID(),
-      type: "temperature",
-      message: `Extreme temperature drop: ${telemetry.temperature.toFixed(1)} °C`,
-      severity: "warning",
-      timestamp: new Date().toISOString(),
-    });
-  }
+    if (telemetry.temperature < -100) {
+      newAlerts.push({
+        id: crypto.randomUUID(),
+        type: "temperature",
+        message: `Extreme temperature drop: ${telemetry.temperature.toFixed(1)} °C`,
+        severity: "warning",
+        timestamp: new Date().toISOString(),
+      });
+    }
 
-  
- if (newAlerts.length > 0) {
-  setAlerts((prev) => {
-    const filtered = newAlerts.filter(
-      (newAlert) =>
-        !prev.some(
-          (existing) =>
-            existing.message === newAlert.message &&
-            existing.timestamp === newAlert.timestamp
-        )
-    );
-    return [...filtered, ...prev].slice(0, 50);
-  });
-}
 
-}, [telemetry]);
+    if (newAlerts.length > 0) {
+      setAlerts((prev) => {
+        const filtered = newAlerts.filter(
+          (newAlert) =>
+            !prev.some(
+              (existing) =>
+                existing.message === newAlert.message &&
+                existing.timestamp === newAlert.timestamp
+            )
+        );
+        return [...filtered, ...prev].slice(0, 50);
+      });
+    }
+
+  }, [telemetry]);
 
   function computeSystemHealth() {
     const criticalCount = alerts.filter(
