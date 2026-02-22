@@ -1,5 +1,6 @@
 export type Alert = {
-  id: number;
+  id: string;
+  type: string;
   message: string;
   severity: "warning" | "critical";
   timestamp: string;
