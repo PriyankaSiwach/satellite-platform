@@ -9,6 +9,9 @@ import TelemetryTable from "@/components/TelemetryTable";
 import TelemetryChart from "@/components/TelemetryChart";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import { generateOrbitTelemetry } from "@/lib/orbitEngine";
+import { fetchRealTelemetry } from "@/lib/realSatelliteService";
+import { getDataSource } from "@/lib/dataSource";
 
 export default function Home() {
   const [selectedSatellite, setSelectedSatellite] = useState("SAT-Alpha");
@@ -29,23 +32,25 @@ export default function Home() {
 
   useEffect(() => {
     if (!isStreaming) return;
-    const interval = setInterval(async() => {
-      const response = await fetch("/api/telemetry");
-      const newTelemetry = await response.json();
 
+    const eventSource = new EventSource("/api/stream");
+    eventSource.onerror = (err) => {
+      console.error("SSE connection error:", err);
+      eventSource.close();
+    };
+
+    eventSource.onmessage = (event) => {
+      const newTelemetry = JSON.parse(event.data);
       setTelemetry(newTelemetry);
-
       setHistory((prev) =>
         [newTelemetry, ...prev].slice(0, 20)
       );
-
       setUptime((prev) => prev + 1);
-
-    }, 1000);
-
-    return () => clearInterval(interval);
+    };
+    return () => {
+      eventSource.close();
+    };
   }, [isStreaming]);
-
 
   useEffect(() => {
     if (!telemetry) return;
@@ -88,6 +93,14 @@ export default function Home() {
     }
 
   }, [telemetry]);
+
+  if (!telemetry) {
+    return (
+      <div className="text-white p-8">
+        Connecting to satellite stream...
+      </div>
+    );
+  }
 
   function computeSystemHealth() {
     const criticalCount = alerts.filter(
@@ -247,9 +260,33 @@ export default function Home() {
               {isStreaming ? "Pause Stream" : "Resume Stream"}
             </button>
 
+            <button className="px-4 py-2 bg-neutral-200 hover:bg-neutral-500 rounded-lg text-sm"
+              onClick={() =>
+                fetch("/api/source", {
+                  method: "POST",
+                  body: JSON.stringify({ mode: "real" }),
+                })
+              }
+
+            >
+              Use Real Satellite
+            </button>
+
+            <button className="px-4 py-2 bg-neutral-200 hover:bg-neutral-500 rounded-lg text-sm"
+              onClick={() =>
+                fetch("/api/source", {
+                  method: "POST",
+                  body: JSON.stringify({ mode: "simulation" }),
+                })
+              }
+
+            >
+              Use Simulation
+            </button>
+
           </section>
         </main>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

@@ -3,4 +3,5 @@ export type Telemetry = {
   velocity: number;
   temperature: number;
   radiation: number;
+  timestamp: string;
 };
