@@ -1,6 +1,6 @@
 export default function Header() {
   return (
-    <header className="h-20 border-b border-neutral-800 bg-neutral-950 flex items-center justify-between px-8">
+    <header className="h-20 border-b border-neutral-800 text-neutral-100 bg-neutral-950 flex items-center justify-between px-8">
       <div>
         <h2 className="text-xl font-semibold">
           Satellite Telemetry Dashboard

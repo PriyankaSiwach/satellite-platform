@@ -33,7 +33,7 @@ export default function Home() {
   useEffect(() => {
     if (!isStreaming) return;
 
-    const eventSource = new EventSource("/api/stream");
+    const eventSource = new EventSource(`/api/stream?satelliteId=${selectedSatellite}`);
     eventSource.onerror = (err) => {
       console.error("SSE connection error:", err);
       eventSource.close();
@@ -50,7 +50,7 @@ export default function Home() {
     return () => {
       eventSource.close();
     };
-  }, [isStreaming]);
+  }, [isStreaming, selectedSatellite]);
 
   useEffect(() => {
     if (!telemetry) return;
@@ -155,8 +155,11 @@ export default function Home() {
 
               <select
                 value={selectedSatellite}
-                onChange={(e) => setSelectedSatellite(e.target.value)}
-                className="bg-neutral-900 border border-neutral-700 px-4 py-2 rounded-lg text-sm"
+                onChange={(e) => {
+                  console.log("Selected satellite:", e.target.value);
+                  setSelectedSatellite(e.target.value);
+                }}
+                className="bg-blue-100 border border-neutral-700 px-4 py-2 rounded-lg text-sm"
               >
                 <option>SAT-Alpha</option>
                 <option>SAT-Beta</option>
