@@ -23,6 +23,8 @@ export default function Home() {
   const [uptime, setUptime] = useState(0);
   const [dataMode, setDataMode] = useState<"real" | "simulation">("simulation");
   const [toast, setToast] = useState<string | null>(null);
+  const [savedHistory, setSavedHistory] = useState<Telemetry[]>([]);
+  const [isLoadingSaved, setIsLoadingSaved] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -59,9 +61,33 @@ export default function Home() {
   useEffect(() => {
     if (!telemetry) return;
 
-   
+
     // We will add new alerts later for real fields (altitude/velocity/visibility) if needed.
   }, [telemetry]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSaved() {
+      setIsLoadingSaved(true);
+      try {
+        const res = await fetch(`/api/telemetry/history?satelliteId=${selectedSatellite}&limit=20`);
+        const data = await res.json();
+        if (!cancelled) setSavedHistory(data.items ?? []);
+      } catch (e) {
+        if (!cancelled) setSavedHistory([]);
+      } finally {
+        if (!cancelled) setIsLoadingSaved(false);
+      }
+    }
+
+    loadSaved();
+    const t = setInterval(loadSaved, 15000); // refresh every 15s
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
+  }, [selectedSatellite]);
 
   if (!telemetry) {
     return (
@@ -225,9 +251,7 @@ export default function Home() {
           <section>
             <AlertPanel alerts={alerts} />
           </section>
-          <section>
-            <TelemetryTable data={history} />
-          </section>
+          
           <section className="grid grid-cols-3 gap-6">
             <TelemetryChart
               data={history}
@@ -250,6 +274,29 @@ export default function Home() {
               title="Longitude Trend"
             />
           </section>
+
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold tracking-wide text-neutral-300">
+                Saved Telemetry (DynamoDB)
+              </h3>
+              <span className="text-xs text-neutral-500">
+                {isLoadingSaved ? "Loading..." : `Showing ${savedHistory.length} rows`}
+              </span>
+            </div>
+
+            <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+              {savedHistory.length === 0 ? (
+                <p className="text-sm text-neutral-400">
+                  No saved rows yet for {selectedSatellite}. (Wait for next save cycle.)
+                </p>
+              ) : (
+                <TelemetryTable data={savedHistory} />
+              )}
+            </div>
+          </section>
+
+
           <section className="flex justify-between items-center bg-neutral-900 border border-neutral-800 rounded-xl p-4">
 
             <div className="flex items-center gap-6 text-sm">
