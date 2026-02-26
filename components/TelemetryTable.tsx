@@ -17,8 +17,8 @@ export default function TelemetryTable({ data }: Props) {
             <tr>
               <th className="py-2">Altitude (km)</th>
               <th className="py-2">Velocity (km/h)</th>
-              <th className="py-2">Temp (°C)</th>
-              <th className="py-2">Radiation (µSv)</th>
+              <th>Latitude (°)</th>
+              <th>Longitude (°)</th>
             </tr>
           </thead>
 
@@ -30,8 +30,8 @@ export default function TelemetryTable({ data }: Props) {
               >
                 <td className="py-2 text-neutral-300">{item.altitude.toFixed(1)}</td>
                 <td className="py-2 text-neutral-300">{item.velocity.toFixed(0)}</td>
-                <td className="py-2 text-neutral-300">{item.temperature.toFixed(0)}</td>
-                <td className="py-2 text-neutral-300">{item.radiation.toFixed(0)}</td>
+                <td className="py-2 text-neutral-300">{item.latitude.toFixed(4)}</td>
+                <td className="py-2 text-neutral-300">{item.longitude.toFixed(4)}</td>
               </tr>
             ))}
           </tbody>

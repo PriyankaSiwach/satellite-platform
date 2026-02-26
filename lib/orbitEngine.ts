@@ -8,20 +8,17 @@ export function generateOrbitTelemetry(): Telemetry {
   const altitude = 420 + Math.sin(time) * 15;
   const velocity = 27600 + Math.cos(time) * 50;
 
-  const radiation =
-    120 +
-    Math.sin(time * 0.5) * 80 +
-    (Math.random() < 0.05 ? 150 : 0);
-
-  const temperature =
-    -65 +
-    Math.cos(time * 0.7) * 25;
+  // Simple orbital-style motion (simulation only)
+  const latitude = Math.sin(time * 0.7) * 51.6; // ISS-like inclination range
+  let longitude = ((time * 20) % 360) - 180;    // wraps from -180 to 180
 
   return {
-    altitude,
-    velocity,
-    temperature,
-    radiation,
+    altitude: Number(altitude.toFixed(2)),
+    velocity: Number(velocity.toFixed(2)),
+    latitude: Number(latitude.toFixed(4)),
+    longitude: Number(longitude.toFixed(4)),
     timestamp: new Date().toISOString(),
+    satelliteId: "SAT-Alpha", // route.ts will override this anyway
+    sourceMode: "simulation",
   };
 }

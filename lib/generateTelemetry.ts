@@ -4,7 +4,10 @@ export function generateTelemetry(): Telemetry {
   return {
     altitude: 400 + Math.random() * 50,
     velocity: 27000 + Math.random() * 800,
-    temperature: -120 + Math.random() * 100,
-    radiation: 50 + Math.random() * 200,
+    latitude: -51 + Math.random() * 102,
+    longitude: -180 + Math.random() * 360,
+    timestamp: new Date().toISOString(),
+    satelliteId: "SAT-Alpha",
+    sourceMode: "simulation",
   };
 }

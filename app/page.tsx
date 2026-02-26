@@ -21,6 +21,8 @@ export default function Home() {
   const [history, setHistory] = useState<Telemetry[]>([]);
   const [isStreaming, setIsStreaming] = useState(true);
   const [uptime, setUptime] = useState(0);
+  const [dataMode, setDataMode] = useState<"real" | "simulation">("simulation");
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -41,6 +43,8 @@ export default function Home() {
 
     eventSource.onmessage = (event) => {
       const newTelemetry = JSON.parse(event.data);
+      console.log("LIVE telemetry:", newTelemetry);
+      console.log("Incoming telemetry source:", newTelemetry.sourceMode, newTelemetry);
       setTelemetry(newTelemetry);
       setHistory((prev) =>
         [newTelemetry, ...prev].slice(0, 20)
@@ -55,43 +59,8 @@ export default function Home() {
   useEffect(() => {
     if (!telemetry) return;
 
-    const newAlerts: Alert[] = [];
-
-    if (telemetry.radiation > 200) {
-      newAlerts.push({
-        id: crypto.randomUUID(),
-        type: "radiation",
-        message: `High radiation detected: ${telemetry.radiation.toFixed(1)} µSv`,
-        severity: "critical",
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    if (telemetry.temperature < -100) {
-      newAlerts.push({
-        id: crypto.randomUUID(),
-        type: "temperature",
-        message: `Extreme temperature drop: ${telemetry.temperature.toFixed(1)} °C`,
-        severity: "warning",
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-
-    if (newAlerts.length > 0) {
-      setAlerts((prev) => {
-        const filtered = newAlerts.filter(
-          (newAlert) =>
-            !prev.some(
-              (existing) =>
-                existing.message === newAlert.message &&
-                existing.timestamp === newAlert.timestamp
-            )
-        );
-        return [...filtered, ...prev].slice(0, 50);
-      });
-    }
-
+   
+    // We will add new alerts later for real fields (altitude/velocity/visibility) if needed.
   }, [telemetry]);
 
   if (!telemetry) {
@@ -100,6 +69,44 @@ export default function Home() {
         Connecting to satellite stream...
       </div>
     );
+  }
+
+  if (!telemetry) {
+    return (
+      <div className="text-white p-8">
+        Connecting to satellite stream...
+      </div>
+    );
+  }
+
+  async function handleModeSwitch(mode: "real" | "simulation") {
+    try {
+      const res = await fetch("/api/source", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mode }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to switch mode: ${res.status}`);
+      }
+
+      setDataMode(mode);
+      setToast(
+        mode === "real"
+          ? "✅ Switched to Real Satellite mode"
+          : "✅ Switched to Simulation mode"
+      );
+
+      // auto-hide toast after 2.5 sec
+      setTimeout(() => setToast(null), 2500);
+    } catch (err) {
+      console.error("Mode switch failed:", err);
+      setToast("❌ Failed to switch data mode");
+      setTimeout(() => setToast(null), 2500);
+    }
   }
 
   function computeSystemHealth() {
@@ -120,20 +127,6 @@ export default function Home() {
 
   const systemHealth = computeSystemHealth();
 
-  function getTemperatureStatus(temp: number) {
-    if (temp > -40) return "warning";
-    if (temp > -20) return "critical";
-    return "normal";
-  }
-
-  function getRadiationStatus(rad: number) {
-    if (rad > 180) return "critical";
-    if (rad > 120) return "warning";
-    return "normal";
-  }
-  if (!telemetry) {
-    return null;
-  }
 
   return (
     <div className="flex">
@@ -144,8 +137,29 @@ export default function Home() {
 
       <div className="flex-1 flex flex-col">
         <Header />
-
         <main className="p-8 space-y-8">
+          <div className="text-sm text-neutral-500">
+            Data Source:{" "}
+            <span
+              className={
+                dataMode === "real" ? "text-green-400 font-semibold" : "text-blue-400 font-semibold"
+              }
+            >
+              {dataMode === "real" ? "REAL SATELLITE" : "SIMULATION"}
+            </span>
+          </div>
+          {toast && (
+            <div className="fixed top-6 right-6 z-50">
+              <div
+                className={`px-4 py-3 rounded-lg shadow-lg border text-sm font-medium ${toast.includes("❌")
+                  ? "bg-red-100 text-red-800 border-red-300"
+                  : "bg-green-100 text-green-800 border-green-300"
+                  }`}
+              >
+                {toast}
+              </div>
+            </div>
+          )}
           {/* Control Bar */}
           <section className="flex justify-between items-center">
             <div className="flex items-center gap-4">
@@ -194,17 +208,17 @@ export default function Home() {
               />
 
               <MetricsCard
-                title="Temperature"
-                value={telemetry.temperature.toFixed(0)}
-                unit="°C"
-                status={getTemperatureStatus(telemetry.temperature)}
+                title="Latitude"
+                value={telemetry.latitude.toFixed(4)}
+                unit="°"
+                status="normal"
               />
 
               <MetricsCard
-                title="Radiation"
-                value={telemetry.radiation.toFixed(0)}
-                unit="µSv"
-                status={getRadiationStatus(telemetry.radiation)}
+                title="Longitude"
+                value={telemetry.longitude.toFixed(4)}
+                unit="°"
+                status="normal"
               />
             </div>
           </section>
@@ -224,16 +238,16 @@ export default function Home() {
 
             <TelemetryChart
               data={history}
-              dataKey="temperature"
-              color="#facc15"
-              title="Temperature Trend"
+              dataKey="latitude"
+              color="#22c55e"
+              title="Latitude Trend"
             />
 
             <TelemetryChart
               data={history}
-              dataKey="radiation"
-              color="#ef4444"
-              title="Radiation Trend"
+              dataKey="longitude"
+              color="#a855f7"
+              title="Longitude Trend"
             />
           </section>
           <section className="flex justify-between items-center bg-neutral-900 border border-neutral-800 rounded-xl p-4">
@@ -251,7 +265,7 @@ export default function Home() {
               </div>
 
               <div className="text-neutral-100">
-                Uptime: {uptime}s
+                Uptime: {uptime}m
               </div>
 
             </div>
@@ -263,26 +277,16 @@ export default function Home() {
               {isStreaming ? "Pause Stream" : "Resume Stream"}
             </button>
 
-            <button className="px-4 py-2 bg-neutral-200 hover:bg-neutral-500 rounded-lg text-sm"
-              onClick={() =>
-                fetch("/api/source", {
-                  method: "POST",
-                  body: JSON.stringify({ mode: "real" }),
-                })
-              }
-
+            <button
+              className="px-4 py-2 bg-neutral-200 hover:bg-neutral-500 rounded-lg text-sm"
+              onClick={() => handleModeSwitch("real")}
             >
               Use Real Satellite
             </button>
 
-            <button className="px-4 py-2 bg-neutral-200 hover:bg-neutral-500 rounded-lg text-sm"
-              onClick={() =>
-                fetch("/api/source", {
-                  method: "POST",
-                  body: JSON.stringify({ mode: "simulation" }),
-                })
-              }
-
+            <button
+              className="px-4 py-2 bg-neutral-200 hover:bg-neutral-500 rounded-lg text-sm"
+              onClick={() => handleModeSwitch("simulation")}
             >
               Use Simulation
             </button>

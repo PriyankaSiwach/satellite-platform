@@ -16,8 +16,8 @@ export async function fetchRealTelemetry(): Promise<Telemetry> {
     return {
       altitude: data.altitude ?? 420,
       velocity: data.velocity ?? 27500,
-      temperature: -65 + Math.random() * 10,
-      radiation: 120 + Math.random() * 50,
+      latitude: data.latitude ?? 0,
+      longitude: data.longitude ?? 0,
       timestamp: new Date().toISOString(),
     };
 
@@ -29,8 +29,8 @@ export async function fetchRealTelemetry(): Promise<Telemetry> {
     return {
       altitude: 420 + Math.random() * 10,
       velocity: 27500 + Math.random() * 200,
-      temperature: -65 + Math.random() * 10,
-      radiation: 120 + Math.random() * 50,
+      latitude: 0,
+      longitude: 0,
       timestamp: new Date().toISOString(),
     };
   }
