@@ -2,6 +2,7 @@ import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb } from "@/lib/ddb";
 import { Telemetry } from "@/types/telemetry";
 
+
 const TABLE = process.env.DDB_TELEMETRY_TABLE!;
 
 export async function saveTelemetry(satelliteId: string, t: Telemetry) {
@@ -38,4 +39,18 @@ export async function getLatestTelemetry(satelliteId: string, limit = 20) {
     );
 
     return res.Items ?? [];
+}
+
+export async function getTelemetryForExport(satelliteId: string, limit = 500) {
+    const res = await ddb.send(
+        new QueryCommand({
+            TableName: TABLE,
+            KeyConditionExpression: "satelliteId = :sid",
+            ExpressionAttributeValues: { ":sid": satelliteId },
+            ScanIndexForward: false, // newest first
+            Limit: limit,
+        })
+    );
+
+    return (res.Items ?? []) as any[];
 }

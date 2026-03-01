@@ -251,7 +251,7 @@ export default function Home() {
           <section>
             <AlertPanel alerts={alerts} />
           </section>
-          
+
           <section className="grid grid-cols-3 gap-6">
             <TelemetryChart
               data={history}
@@ -280,6 +280,32 @@ export default function Home() {
               <h3 className="text-sm font-semibold tracking-wide text-neutral-300">
                 Saved Telemetry (DynamoDB)
               </h3>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className="px-3 py-2 bg-neutral-200 hover:bg-neutral-300 rounded-lg text-sm"
+                  onClick={() =>
+                    window.open(
+                      `/api/export/csv?satelliteId=${selectedSatellite}&limit=500`,
+                      "_blank"
+                    )
+                  }
+                >
+                  Export CSV
+                </button>
+
+                {/* keep this only if you really want PDF */}
+                <button
+                  className="px-3 py-2 bg-neutral-200 hover:bg-neutral-300 rounded-lg text-sm"
+                  onClick={() =>
+                    window.open(
+                      `/api/export/pdf?satelliteId=${selectedSatellite}&limit=200`,
+                      "_blank"
+                    )
+                  }
+                >
+                  Export PDF
+                </button>
+              </div>
               <span className="text-xs text-neutral-500">
                 {isLoadingSaved ? "Loading..." : `Showing ${savedHistory.length} rows`}
               </span>
@@ -337,6 +363,7 @@ export default function Home() {
             >
               Use Simulation
             </button>
+
 
           </section>
         </main>
