@@ -27,8 +27,16 @@ export default function RootLayout({
   return (
     <html lang="en">
     <body className="bg-neutral-950 text-white">
-  {children}
-</body>
-    </html>
+      <div className="flex h-screen">
+        <Sidebar alertCount={0} systemHealth="healthy" />
+        <div className="flex-1 flex flex-col">
+          <Header systemHealth="healthy" />
+          <main className="flex-1 overflow-auto p-8">
+            {children}
+          </main>
+        </div>
+      </div>
+    </body>
+  </html>
   );
 }
