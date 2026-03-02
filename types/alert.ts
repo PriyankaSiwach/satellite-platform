@@ -1,6 +1,6 @@
 export type Alert = {
   id: string;
-  type: string;
+  satelliteId: string;
   message: string;
   severity: "warning" | "critical";
   timestamp: string;

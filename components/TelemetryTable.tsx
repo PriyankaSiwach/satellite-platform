@@ -5,6 +5,8 @@ type Props = {
 };
 
 export default function TelemetryTable({ data }: Props) {
+  const format = (value: number | undefined, digits: number) =>
+    value !== undefined ? value.toFixed(digits) : "--";
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
       <h3 className="text-sm font-semibold mb-4 text-neutral-300 tracking-wide">
@@ -28,10 +30,10 @@ export default function TelemetryTable({ data }: Props) {
                 key={index}
                 className="border-b border-neutral-800 hover:bg-neutral-800/40 transition"
               >
-                <td className="py-2 text-neutral-300">{item.altitude.toFixed(1)}</td>
-                <td className="py-2 text-neutral-300">{item.velocity.toFixed(0)}</td>
-                <td className="py-2 text-neutral-300">{item.latitude.toFixed(4)}</td>
-                <td className="py-2 text-neutral-300">{item.longitude.toFixed(4)}</td>
+                <td>{format(item.altitude, 1)}</td>
+                <td>{format(item.velocity, 0)}</td>
+                <td>{format(item.latitude, 4)}</td>
+                <td>{format(item.longitude, 4)}</td>
               </tr>
             ))}
           </tbody>

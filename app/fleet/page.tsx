@@ -105,7 +105,7 @@ export default function FleetPage() {
       <div className="bg-neutral-900 p-6 rounded-xl border border-neutral-800 grid grid-cols-4 gap-6 text-sm">
         <div>
           <div className="text-neutral-400">Total Satellites</div>
-          <div className="text-lg font-semibold">{total}</div>
+          <div className="text-white font-semibold">{total}</div>
         </div>
 
         <div>
@@ -131,7 +131,7 @@ export default function FleetPage() {
 
         <div>
           <div className="text-neutral-400">Avg Latency</div>
-          <div className="font-semibold">
+          <div className="font-semibold text-white">
             {avgLatency.toFixed(0)} ms
           </div>
         </div>
@@ -140,14 +140,14 @@ export default function FleetPage() {
           <div className="text-neutral-400">
             Total Anomalies
           </div>
-          <div className="font-semibold">{totalAnomalies}</div>
+          <div className="font-semibold text-white">{totalAnomalies}</div>
         </div>
 
         <div>
           <div className="text-neutral-400">
             Fleet Health Score
           </div>
-          <div className="font-semibold">
+          <div className="font-semibold text-white ">
             {fleetHealthScore}
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function FleetPage() {
                 | "anomalies"
             )
           }
-          className="bg-neutral-800 border border-neutral-700 px-3 py-2 rounded-lg text-sm"
+          className="bg-white-800 border border-neutral-700 px-3 py-2 rounded-lg text-sm"
         >
           <option value="health">Sort by Health</option>
           <option value="latency">Sort by Latency</option>
@@ -183,7 +183,7 @@ export default function FleetPage() {
             className="bg-neutral-900 p-6 rounded-xl border border-neutral-800"
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
+              <h3 className="text-white font-semibold">
                 {sat.id}
               </h3>
               <span
@@ -224,7 +224,7 @@ export default function FleetPage() {
                   )
                 )
               }
-              className="mt-4 w-full bg-neutral-800 hover:bg-neutral-700 py-2 rounded-lg text-sm"
+              className="mt-4 w-full bg-blue-500 hover:bg-neutral-700 py-2 rounded-lg text-sm"
             >
               Toggle Stream
             </button>
