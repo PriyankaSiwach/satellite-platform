@@ -17,6 +17,7 @@ import { useSystem } from "../context/SystemContext";
 
 export default function Home() {
     const { config, applyConfig } = useSystem();
+    const velocityLimit = 27600 + config.anomalyThreshold * 150;
 
 
     const [selectedSatellite, setSelectedSatellite] = useState("SAT-Alpha");
@@ -43,7 +44,7 @@ export default function Home() {
     useEffect(() => {
         if (!isStreaming) return;
 
-        const eventSource = new EventSource(`/api/stream?satelliteId=${selectedSatellite}`);
+        const eventSource = new EventSource(`/api/stream?satelliteId=${selectedSatellite}&interval=${config.streamingInterval}`);
         eventSource.onerror = (err) => {
             console.error("SSE connection error:", err);
             eventSource.close();
@@ -71,23 +72,22 @@ export default function Home() {
 
   const newAlerts: Alert[] = [];
 
-  if (telemetry.velocity > 28000) {
-    newAlerts.push({
-      id: Date.now().toString(),
-      satelliteId: selectedSatellite,
-      message: "Velocity exceeds safe orbit range",
-      severity:
-        telemetry.velocity > 28000 + config.anomalyThreshold * 100
-          ? "critical"
-          : "warning",
-      timestamp: new Date().toISOString(),
-    });
-  }
+  if (telemetry.velocity > velocityLimit) {
+  newAlerts.push({
+    id: Date.now().toString(),
+    type: "velocity",
+    satelliteId: selectedSatellite,
+    message: "Velocity anomaly detected",
+    severity: "critical",
+    timestamp: new Date().toISOString(),
+  });
+}
 
   if (telemetry.altitude < 400) {
     newAlerts.push({
       id: (Date.now() + 1).toString(),
       satelliteId: selectedSatellite,
+      type: "altitude",
       message: "Altitude dropping",
       severity:
         telemetry.altitude < 400 - config.anomalyThreshold

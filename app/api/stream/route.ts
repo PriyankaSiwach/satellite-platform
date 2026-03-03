@@ -7,6 +7,7 @@ export async function GET(req: Request) {
   const encoder = new TextEncoder();
   const { searchParams } = new URL(req.url);
   const satelliteId = searchParams.get("satelliteId") || "SAT-Alpha";
+  const intervalMs = Number(searchParams.get("interval")) || 1000;
 
   console.log("Streaming started for:", satelliteId);
 
@@ -85,7 +86,7 @@ export async function GET(req: Request) {
       await sendTelemetry();
 
       // Then every 3 seconds
-      intervalId = setInterval(sendTelemetry, 3000);
+      intervalId = setInterval(sendTelemetry, intervalMs);
     },
 
     cancel() {
