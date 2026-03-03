@@ -1,29 +1,25 @@
 "use client";
 import AlertPanel from "@/components/AlertPanel";
-import { generateTelemetry } from "@/lib/generateTelemetry";
 import { Telemetry } from "@/types/telemetry";
 import { useState, useEffect } from "react";
 import MetricsCard from "@/components/MetricsCard";
 import { Alert } from "@/types/alert";
 import TelemetryTable from "@/components/TelemetryTable";
 import TelemetryChart from "@/components/TelemetryChart";
-import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
-import { generateOrbitTelemetry } from "@/lib/orbitEngine";
-import { fetchRealTelemetry } from "@/lib/realSatelliteService";
-import { getDataSource } from "@/lib/dataSource";
 import { useSystem } from "../context/SystemContext";
+import { useAlerts } from "../context/AlertsContext";
 
 
 export default function Home() {
     const { config, applyConfig } = useSystem();
-    const velocityLimit = 27600 + config.anomalyThreshold * 150;
+    const velocityLimit = 27600 + config.anomalyThreshold * 5;
+    const { alerts, setAlerts } = useAlerts();
 
 
     const [selectedSatellite, setSelectedSatellite] = useState("SAT-Alpha");
     const [time, setTime] = useState(new Date());
     const [telemetry, setTelemetry] = useState<Telemetry | null>(null);
-    const [alerts, setAlerts] = useState<Alert[]>([]);
+
     const [history, setHistory] = useState<Telemetry[]>([]);
     const [isStreaming, setIsStreaming] = useState(true);
     const [uptime, setUptime] = useState(0);
@@ -39,7 +35,7 @@ export default function Home() {
         }, config.streamingInterval);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [config.streamingInterval]);
 
     useEffect(() => {
         if (!isStreaming) return;
@@ -52,53 +48,47 @@ export default function Home() {
 
         eventSource.onmessage = (event) => {
             const newTelemetry = JSON.parse(event.data);
-            setTimeout(() => {
-                setTelemetry(newTelemetry);
-                setHistory(prev => [newTelemetry, ...prev].slice(0, 20));
-                setUptime(prev => prev + 1);
-            }, config.streamingInterval);
-            setHistory((prev) =>
-                [newTelemetry, ...prev].slice(0, 20)
-            );
+            setTelemetry(newTelemetry);
+            setHistory((prev) => [newTelemetry, ...prev].slice(0, 20));
             setUptime((prev) => prev + 1);
         };
         return () => {
             eventSource.close();
         };
-    }, [isStreaming, selectedSatellite,  config.streamingInterval]);
+    }, [isStreaming, selectedSatellite, config.streamingInterval]);
 
-   useEffect(() => {
-  if (!telemetry) return;
+    useEffect(() => {
+        if (!telemetry) return;
 
-  const newAlerts: Alert[] = [];
+        const newAlerts: Alert[] = [];
 
-  if (telemetry.velocity > velocityLimit) {
-  newAlerts.push({
-    id: Date.now().toString(),
-    type: "velocity",
-    satelliteId: selectedSatellite,
-    message: "Velocity anomaly detected",
-    severity: "critical",
-    timestamp: new Date().toISOString(),
-  });
-}
+        if (telemetry.velocity > velocityLimit) {
+            newAlerts.push({
+                id: Date.now().toString(),
+                type: "velocity",
+                satelliteId: selectedSatellite,
+                message: "Velocity anomaly detected",
+                severity: "critical",
+                timestamp: new Date().toISOString(),
+            });
+        }
 
-  if (telemetry.altitude < 400) {
-    newAlerts.push({
-      id: (Date.now() + 1).toString(),
-      satelliteId: selectedSatellite,
-      type: "altitude",
-      message: "Altitude dropping",
-      severity:
-        telemetry.altitude < 400 - config.anomalyThreshold
-          ? "critical"
-          : "warning",
-      timestamp: new Date().toISOString(),
-    });
-  }
+        if (telemetry.altitude < 400) {
+            newAlerts.push({
+                id: (Date.now() + 1).toString(),
+                satelliteId: selectedSatellite,
+                type: "altitude",
+                message: "Altitude dropping",
+                severity:
+                    telemetry.altitude < 400 - config.anomalyThreshold
+                        ? "critical"
+                        : "warning",
+                timestamp: new Date().toISOString(),
+            });
+        }
 
-  setAlerts(newAlerts);
-}, [telemetry, config.anomalyThreshold, selectedSatellite]);
+        setAlerts(prev => [...newAlerts, ...prev].slice(0, 10));
+    }, [telemetry, config.anomalyThreshold, selectedSatellite]);
 
     useEffect(() => {
         let cancelled = false;
@@ -195,7 +185,7 @@ export default function Home() {
     return (
         <div className="flex">
 
-            <main className="p-8 space-y-8">
+            <main className="flex-1 p-8 space-y-8 min-w-0">
                 <div className="text-sm text-neutral-500">
                     Data Source:{" "}
                     <span
@@ -250,7 +240,7 @@ export default function Home() {
                         Live Satellite Metrics
                     </h2>
 
-                    <div className="grid grid-cols-4 gap-6">
+                    <div className="gap-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                         <MetricsCard
                             title="Altitude"
                             value={telemetry.altitude.toFixed(1)}

@@ -4,6 +4,8 @@ import "./globals.css";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import { SystemProvider } from "./context/SystemContext";
+import { AlertsProvider } from "./context/AlertsContext";
+import AppShell from "@/components/layout/AppShell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,19 +30,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-neutral-950 text-white">
-  <SystemProvider>
-    <div className="flex">
-      {/* Sidebar */}
-      <Sidebar alertCount={0} systemHealth="healthy" />
-
-      {/* Main Area */}
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className="p-8">{children}</main>
-      </div>
-    </div>
-  </SystemProvider>
-</body>
+        <SystemProvider>
+          <AlertsProvider>
+            <AppShell>{children}</AppShell>
+          </AlertsProvider>
+        </SystemProvider>
+      </body>
     </html>
   );
 }

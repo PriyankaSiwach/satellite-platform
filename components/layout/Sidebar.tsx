@@ -1,77 +1,87 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Satellite, Activity, AlertTriangle, Settings } from "lucide-react";
+import {
+  Satellite,
+  Activity,
+  AlertTriangle,
+  Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
 
 type Props = {
-  alertCount: number;
-  systemHealth: "healthy" | "warning" | "critical";
+  isOpen: boolean;
+  onToggle: () => void;
 };
 
-const navItems = [
-  { name: "Live Telemetry", href: "/dashboard", icon: Activity },
-  { name: "Anomaly Monitor", href: "/anomalies", icon: AlertTriangle },
-  { name: "Satellite Fleet", href: "/fleet", icon: Satellite },
-  { name: "System Settings", href: "/settings", icon: Settings },
-];
-
-export default function Sidebar({ alertCount, systemHealth }: Props) {
-  const pathname = usePathname();
-
+export default function Sidebar({ isOpen, onToggle }: Props) {
   return (
-    <aside className="w-64 bg-neutral-900 border-r border-neutral-800 h-screen p-6">
-      {/* Logo */}
-      <div className="flex items-center gap-3 mb-10">
-        <Satellite className="text-blue-500" size={28} />
-        <h1 className="text-lg font-semibold tracking-wide text-white">
-          Orbital Systems
-        </h1>
-      </div>
+    <aside
+      className={`bg-neutral-950 border-r border-neutral-800 min-h-screen transition-all duration-300 ${
+        isOpen ? "w-72" : "w-20"
+      }`}
+    >
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <Satellite className="text-blue-500 shrink-0" size={28} />
+          {isOpen && (
+            <h1 className="text-lg font-semibold whitespace-nowrap">
+              Orbital Systems
+            </h1>
+          )}
+        </div>
 
-      {/* System Health Badge */}
-      <div className="mb-8">
-        <span
-          className={`text-xs px-3 py-1 rounded-full inline-block ${
-            systemHealth === "healthy"
-              ? "bg-green-900 text-green-400"
-              : systemHealth === "warning"
-              ? "bg-yellow-900 text-yellow-400"
-              : "bg-red-900 text-red-400"
-          }`}
+        <button
+          onClick={onToggle}
+          className="text-neutral-400 hover:text-white"
         >
-          {systemHealth.toUpperCase()}
-        </span>
+          {isOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+        </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="space-y-2">
-        {navItems.map(({ name, href, icon: Icon }) => {
-          const active = pathname === href;
+      <div className="px-4 pb-4">
+        {isOpen ? (
+          <span className="inline-block px-4 py-2 rounded-full text-sm bg-green-900 text-green-400">
+            HEALTHY
+          </span>
+        ) : (
+          <div className="w-3 h-3 rounded-full bg-green-500 mx-auto" />
+        )}
+      </div>
 
-          return (
-            <Link
-              key={name}
-              href={href}
-              className={`flex items-center justify-between px-4 py-2 rounded-lg transition ${
-                active
-                  ? "bg-neutral-800 text-green-400"
-                  : "text-neutral-300 hover:bg-neutral-800 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Icon size={18} />
-                <span>{name}</span>
-              </div>
+      <nav className="mt-4 space-y-2 px-3">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 text-neutral-200"
+        >
+          <Activity size={20} className="shrink-0" />
+          {isOpen && <span>Live Telemetry</span>}
+        </Link>
 
-              {name === "Anomaly Monitor" && alertCount > 0 && (
-                <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
-                  {alertCount}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+        <Link
+          href="/anomalies"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 text-neutral-200"
+        >
+          <AlertTriangle size={20} className="shrink-0" />
+          {isOpen && <span>Anomaly Monitor</span>}
+        </Link>
+
+        <Link
+          href="/fleet"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 text-neutral-200"
+        >
+          <Satellite size={20} className="shrink-0" />
+          {isOpen && <span>Satellite Fleet</span>}
+        </Link>
+
+        <Link
+          href="/settings"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-900 text-neutral-200"
+        >
+          <Settings size={20} className="shrink-0" />
+          {isOpen && <span>System Settings</span>}
+        </Link>
       </nav>
     </aside>
   );

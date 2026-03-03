@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useAlerts } from "../context/AlertsContext";
 
 type Anomaly = {
   satellite: string;
@@ -9,30 +10,18 @@ type Anomaly = {
   timestamp: string;
 };
 
-const initialData: Anomaly[] = [
-  {
-    satellite: "SAT-Alpha",
-    metric: "Velocity Deviation",
-    severity: "warning",
-    timestamp: new Date().toISOString(),
-  },
-  {
-    satellite: "SAT-Beta",
-    metric: "Altitude Drift",
-    severity: "critical",
-    timestamp: new Date().toISOString(),
-  },
-  {
-    satellite: "SAT-Alpha",
-    metric: "Thermal Spike",
-    severity: "warning",
-    timestamp: new Date().toISOString(),
-  },
-];
-
 export default function AnomaliesPage() {
-  const [anomalies] = useState<Anomaly[]>(initialData);
+  const { alerts } = useAlerts();
   const [sortBy, setSortBy] = useState<"severity" | "satellite">("severity");
+  const anomalies: Anomaly[] = alerts.map((alert) => ({
+    satellite: alert.satelliteId,
+    metric: alert.type,
+    severity: alert.severity,
+    timestamp: alert.timestamp,
+  }));
+
+
+
 
   /* =========================
      DERIVED INTELLIGENCE
@@ -50,9 +39,9 @@ export default function AnomaliesPage() {
   const riskScore =
     total > 0
       ? (
-          (criticalCount * 1 + warningCount * 0.5) /
-          total
-        ).toFixed(2)
+        (criticalCount * 1 + warningCount * 0.5) /
+        total
+      ).toFixed(2)
       : "0";
 
   // Satellite-level aggregation
@@ -80,8 +69,8 @@ export default function AnomaliesPage() {
         data.critical > 0
           ? "high"
           : data.total > 1
-          ? "medium"
-          : "low",
+            ? "medium"
+            : "low",
     }));
   }, [anomalies]);
 
@@ -162,13 +151,12 @@ export default function AnomaliesPage() {
                 {s.total} anomalies
               </span>
               <span
-                className={`px-3 py-1 rounded-full text-xs ${
-                  s.riskLevel === "high"
+                className={`px-3 py-1 rounded-full text-xs ${s.riskLevel === "high"
                     ? "bg-red-900 text-red-400"
                     : s.riskLevel === "medium"
-                    ? "bg-yellow-900 text-yellow-400"
-                    : "bg-green-900 text-green-400"
-                }`}
+                      ? "bg-yellow-900 text-yellow-400"
+                      : "bg-green-900 text-green-400"
+                  }`}
               >
                 {s.riskLevel}
               </span>
@@ -199,7 +187,9 @@ export default function AnomaliesPage() {
 
       {/* ===== Detailed Anomaly List ===== */}
       <div className="bg-neutral-900 rounded-xl p-6 border border-neutral-800">
-        {sortedAnomalies.map((a, i) => (
+        {sortedAnomalies.length === 0 ? (
+          <p className="text-neutral-400 text-sm">No active anomalies detected.</p>
+        ) : (sortedAnomalies.map((a, i) => (
           <div
             key={i}
             className="flex justify-between items-center border-b border-neutral-800 py-3 text-sm"
@@ -217,16 +207,15 @@ export default function AnomaliesPage() {
             </div>
 
             <span
-              className={`px-3 py-1 rounded-full text-xs ${
-                a.severity === "warning"
+              className={`px-3 py-1 rounded-full text-xs ${a.severity === "warning"
                   ? "bg-yellow-900 text-yellow-400"
                   : "bg-red-900 text-red-400"
-              }`}
+                }`}
             >
               {a.severity}
             </span>
           </div>
-        ))}
+        )))}
       </div>
     </div>
   );

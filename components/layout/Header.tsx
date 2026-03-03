@@ -1,29 +1,33 @@
 "use client";
 
-import { useSystem } from "@/app/context/SystemContext";
+import { Menu } from "lucide-react";
 
-export default function Header() {
-  const { config } = useSystem();
+type Props = {
+  onToggleSidebar: () => void;
+};
 
-  const systemHealth =
-    config.dataMode === "real" ? "healthy" : "healthy";
-
+export default function Header({ onToggleSidebar }: Props) {
   return (
-    <header className="h-20 border-b border-neutral-800 bg-neutral-950 flex items-center justify-between px-8">
-      <div>
-        <h2 className="text-xl font-semibold">
-          Satellite Telemetry Dashboard
-        </h2>
-        <p className="text-sm text-neutral-400">
-          Real-time orbital system monitoring
-        </p>
+    <header className="h-20 border-b border-neutral-800 text-neutral-100 bg-neutral-950 flex items-center justify-between px-8">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onToggleSidebar}
+          className="text-neutral-400 hover:text-white"
+        >
+          <Menu size={22} />
+        </button>
+
+        <div>
+          <h2 className="text-xl font-semibold">Satellite Telemetry Dashboard</h2>
+          <p className="text-sm text-neutral-400">
+            Real-time orbital system monitoring
+          </p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 text-sm">
+      <div className="flex items-center gap-2 text-sm text-neutral-400">
         <div className="w-2 h-2 bg-green-500 rounded-full" />
-        <span className="text-neutral-300">
-          {systemHealth}
-        </span>
+        <span>healthy</span>
       </div>
     </header>
   );
